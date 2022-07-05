@@ -1,0 +1,17 @@
+
+{% extends 'base.html' %} {% block content %}
+
+<h1>Plant List</h1>
+
+<!-- "for in" loop (iterating through an array)-->
+{% for plant in plants %}
+<div class="card">
+  <div class="card-content">
+    <span class="card-title">{{ plant.name }}</span>
+    <p>Scientific Name: {{ plant.sciname }}</p>
+    <p>Description: {{ plant.description }}</p>
+    <p>Location: {{ plant.location }}</p>
+    <p>Date Seen: {{ plant.date }}</p>
+  </div>
+</div>
+{% endfor %} {% endblock %}

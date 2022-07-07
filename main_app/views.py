@@ -1,9 +1,8 @@
 
 from django.shortcuts import render
-from .models import Plant
-
 # Add the following import
-from django.http import HttpResponse
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from .models import Plant
 
 # Define the home view
 def home(request):
@@ -37,3 +36,16 @@ def plants_index(request):
 def plants_detail(request, plant_id):
     plant = Plant.objects.get(id=plant_id)
     return render(request, 'plants/detail.html', { 'plant': plant })
+
+class PlantCreate(CreateView):
+    model = Plant
+    fields = '__all__'
+
+class PlantUpdate(UpdateView):
+  model = Plant
+  # Let's disallow the renaming of a cat by excluding the name field!
+  fields = ['sciname', 'description', 'location', 'date']
+
+class PlantDelete(DeleteView):
+  model = Plant
+  success_url = '/plants/'

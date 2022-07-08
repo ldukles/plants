@@ -1,9 +1,9 @@
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 # Add the following import
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from .models import Plant
-
+from .forms import BloomForm
 # Define the home view
 def home(request):
     # This is where we return a response in most cases we render a template and we'll need some data for that template
@@ -35,7 +35,22 @@ def plants_index(request):
 
 def plants_detail(request, plant_id):
     plant = Plant.objects.get(id=plant_id)
-    return render(request, 'plants/detail.html', { 'plant': plant })
+    bloom_form = BloomForm()
+    return render(request, 'plants/detail.html', {
+      'plant': plant, 'bloom_form': bloom_form
+    })
+
+def add_bloom(request, plant_id):
+  # create the ModelForm using the data in request.POST
+  form = BloomForm(request.POST)
+  # validate the form
+  if form.is_valid():
+    # don't save the form to the db until it
+    # has the cat_id assigned
+    new_bloom = form.save(commit=False)
+    new_bloom.plant_id = plant_id
+    new_bloom.save()
+  return redirect('detail', plant_id=plant_id)
 
 class PlantCreate(CreateView):
     model = Plant

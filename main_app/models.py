@@ -1,11 +1,21 @@
 from django.db import models
 from django.urls import reverse
-
+from datetime import date
 
 BLOOMS = (
     ('Y', 'Yes'),
     ('N', 'No'),
 )
+
+class Condition(models.Model):
+    sun = models.CharField(max_length=15)
+    moisture = models.CharField(max_length=15)
+
+    def __str__(self):
+        return f'{self.moisture} {self.sun}'
+
+    def get_absolute_url(self):
+        return reverse('conditions_detail', kwargs={'pk': self.id})
 
 # Create your models here.
 class Plant(models.Model):
@@ -13,7 +23,7 @@ class Plant(models.Model):
     sciname = models.CharField(max_length=100)
     description = models.TextField(max_length=250)
     location = models.CharField(max_length=100)
-    date = models.CharField(max_length=100)
+    conditions = models.ManyToManyField(Condition)
 
     def __str__(self):
         return self.name

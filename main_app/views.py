@@ -2,7 +2,9 @@
 from django.shortcuts import render, redirect
 # Add the following import
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from .models import Plant
+from django.views.generic import ListView
+from django.views.generic.detail import DetailView
+from .models import Plant, Condition
 from .forms import BloomForm
 # Define the home view
 def home(request):
@@ -36,8 +38,10 @@ def plants_index(request):
 def plants_detail(request, plant_id):
     plant = Plant.objects.get(id=plant_id)
     bloom_form = BloomForm()
+    conditions_plant_doesnt_have = Condition.objects.exclude(id__in = plant.conditions.all().values_list('id'))
     return render(request, 'plants/detail.html', {
-      'plant': plant, 'bloom_form': bloom_form
+      'plant': plant, 'bloom_form': bloom_form,
+      'conditions': conditions_plant_doesnt_have
     })
 
 def add_bloom(request, plant_id):
@@ -52,15 +56,48 @@ def add_bloom(request, plant_id):
     new_bloom.save()
   return redirect('detail', plant_id=plant_id)
 
+def assoc_condition(request, plant_id, condition_id):
+  # Note that you can pass a toy's id instead of the whole object
+  Plant.objects.get(id=plant_id).conditions.add(condition_id)
+  return redirect('detail', plant_id=plant_id)
+
+def assoc_condition_delete(request, plant_id, condition_id):
+  # Note that you can pass a toy's id instead of the whole object
+  Plant.objects.get(id=plant_id).conditions.remove(condition_id)
+  return redirect('detail', plant_id=plant_id)
+
 class PlantCreate(CreateView):
     model = Plant
-    fields = '__all__'
+    fields = ['name', 'sciname', 'description', 'location']
+    success_url = '/plants/'
 
 class PlantUpdate(UpdateView):
   model = Plant
-  # Let's disallow the renaming of a cat by excluding the name field!
-  fields = ['sciname', 'description', 'location', 'date']
+  # Let's disallow the renaming of a by excluding the name field!
+  fields = ['name', 'sciname', 'description', 'location']
 
 class PlantDelete(DeleteView):
   model = Plant
   success_url = '/plants/'
+
+class ConditionList(ListView):
+  model = Condition
+  template_name = 'conditions/index.html'
+
+class ConditionDetail(DetailView):
+  model = Condition
+  template_name = 'conditions/detail.html'
+
+class ConditionCreate(CreateView):
+    model = Condition
+    fields = ['sun', 'moisture']
+
+
+class ConditionUpdate(UpdateView):
+    model = Condition
+    fields = ['sun', 'moisture']
+
+
+class ConditionDelete(DeleteView):
+    model = Condition
+    success_url = '/conditions/'

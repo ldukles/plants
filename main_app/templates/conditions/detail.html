@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block content %}
+
+<h1>Growing Condition Details</h1>
+
+<div class="card">
+  <a href="{% url 'conditions_detail' condition.id %}">
+    <div class="card-content">
+      <span class="card-title"
+        >A
+        <span class="{{ condition.moisture.lower }}-text">{{ condition.moisture }}</span>
+        {{condition.sun}}</span
+      >
+    </div>
+    <div class="card-action">
+      <a href="{% url 'conditions_update' condition.id %}">Edit</a>
+      <a href="{% url 'conditions_delete' condition.id %}">Delete</a>
+    </div>
+  </a>
+</div>
+
+{% endblock %}

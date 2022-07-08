@@ -10,7 +10,6 @@
         <p>Scientific Name: {{ plant.sciname }}</p>
         <p>Description: {{ plant.description }}</p>
         <p>Location: {{ plant.location }}</p>
-        <p>Date: {{ plant.date }}</p>
       </div>
       <div class="card-action">
         <a href="{% url 'plants_update' plant.id %}">Edit</a>
@@ -23,6 +22,7 @@
         {% csrf_token %} {{ bloom_form.as_p }}
         <input type="submit" class="btn" value="Add Bloom" />
       </form>
+      <br />
     <table class="striped">
       <thead>
         <tr>
@@ -41,6 +41,51 @@
     </table>
   </div>
 </div>
+<hr />
+<div class="row">
+  <div class="col s6">
+    <h3>{{ plant.name }}'s Growing Conditions</h3>
+    {% if plant.conditions.count %} {% for condition in plant.conditions.all %}
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">
+          <span>{{ condition.moisture }}</span>
+          {{ condition.sun }}
+        </span>
+      </div>
+      <div class="card-action">
+        <form action="{% url 'assoc_condition_delete' plant.id condition.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn">Remove</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <h5>No Growing Conditions :(</h5>
+    {% endif %}
+  </div>
+  <div class="col s6">
+    <h3>Possible Growing Conditions</h3>
+    {% if conditions.count %} {% for condition in conditions.all %}
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">
+          <span>{{ condition.moisture }}</span> Soil
+          <br />
+          {{ condition.sun }}
+        </span>
+      </div>
+      <div class="card-action">
+        <form action="{% url 'assoc_condition' plant.id condition.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn">Add</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <h5>{{plant.name}} Already Has Growing Conditions</h5>
+    {% endif %}
+  </div>
 <script>
   var dateEl = document.getElementById("id_date");
   M.Datepicker.init(dateEl, {

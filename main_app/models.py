@@ -52,3 +52,12 @@ class Bloom(models.Model):
     def __str__(self):
     # Nice method for obtaining the friendly value of a Field.choice
         return f"{self.get_bloom_display()} on {self.date}"
+
+
+
+class Photo(models.Model):
+    url = models.CharField(max_length=200)
+    plant = models.ForeignKey(Plant, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Photo for plant_id: {self.plant_id} @{self.url}"

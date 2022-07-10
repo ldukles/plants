@@ -6,6 +6,10 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from .models import Plant, Condition, Photo
 from .forms import BloomForm
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 import uuid
 import boto3
 
@@ -36,11 +40,13 @@ def about(request):
 #   Plant('Tall Meadow Rue', 'Thalictrum dasycarpum', 'delicate white stamen that billow in the wind', 'Sara Stein Garden', '6/18/22'),
 
 # ]
-
+@login_required
 def plants_index(request):
-    plants = Plant.objects.all()
+    # plants = Plant.objects.all()
+    plants = Plant.objects.filter(user=request.user)
     return render(request, 'plants/index.html', {'plants': plants})
 
+@login_required
 def plants_detail(request, plant_id):
     plant = Plant.objects.get(id=plant_id)
     bloom_form = BloomForm()
@@ -50,6 +56,7 @@ def plants_detail(request, plant_id):
       'conditions': conditions_plant_doesnt_have
     })
 
+@login_required
 def add_bloom(request, plant_id):
   # create the ModelForm using the data in request.POST
   form = BloomForm(request.POST)
@@ -62,17 +69,19 @@ def add_bloom(request, plant_id):
     new_bloom.save()
   return redirect('detail', plant_id=plant_id)
 
+@login_required
 def assoc_condition(request, plant_id, condition_id):
   # Note that you can pass a toy's id instead of the whole object
   Plant.objects.get(id=plant_id).conditions.add(condition_id)
   return redirect('detail', plant_id=plant_id)
 
+@login_required
 def assoc_condition_delete(request, plant_id, condition_id):
   # Note that you can pass a toy's id instead of the whole object
   Plant.objects.get(id=plant_id).conditions.remove(condition_id)
   return redirect('detail', plant_id=plant_id)
 
-
+@login_required
 def add_photo(request, plant_id):
     # photo-file will be the "name" attribute on the <input type="file">
     photo_file = request.FILES.get('photo-file', None)
@@ -93,38 +102,55 @@ def add_photo(request, plant_id):
         return redirect('detail', plant_id=plant_id)
     return redirect('detail', plant_id=plant_id)
 
-class PlantCreate(CreateView):
+
+def signup(request):
+  error_message = ''
+  if request.method == 'POST':
+    form = UserCreationForm(request.POST)
+    if form.is_valid():
+      user = form.save()
+      login(request, user)
+      return redirect('index')
+    else:
+      error_message = 'Invalid sign up - try again'
+  form = UserCreationForm()
+  context = {'form': form, 'error_message': error_message}
+  return render(request, 'registration/signup.html', context)
+
+class PlantCreate(LoginRequiredMixin, CreateView):
     model = Plant
     fields = ['name', 'sciname', 'description', 'location']
-    success_url = '/plants/'
+    def form_valid(self, form):
+      form.instance.user = self.request.user
+      return super().form_valid(form)
 
-class PlantUpdate(UpdateView):
+class PlantUpdate(LoginRequiredMixin, UpdateView):
   model = Plant
   # Let's disallow the renaming of a by excluding the name field!
   fields = ['name', 'sciname', 'description', 'location']
 
-class PlantDelete(DeleteView):
+class PlantDelete(LoginRequiredMixin, DeleteView):
   model = Plant
   success_url = '/plants/'
 
-class ConditionList(ListView):
+class ConditionList(LoginRequiredMixin, ListView):
   model = Condition
   template_name = 'conditions/index.html'
 
-class ConditionDetail(DetailView):
+class ConditionDetail(LoginRequiredMixin, DetailView):
   model = Condition
   template_name = 'conditions/detail.html'
 
-class ConditionCreate(CreateView):
+class ConditionCreate(LoginRequiredMixin, CreateView):
     model = Condition
     fields = ['sun', 'moisture']
 
 
-class ConditionUpdate(UpdateView):
+class ConditionUpdate(LoginRequiredMixin, UpdateView):
     model = Condition
     fields = ['sun', 'moisture']
 
 
-class ConditionDelete(DeleteView):
+class ConditionDelete(LoginRequiredMixin, DeleteView):
     model = Condition
     success_url = '/conditions/'

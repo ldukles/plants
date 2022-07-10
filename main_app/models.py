@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from datetime import date
+from django.contrib.auth.models import User
 
 BLOOMS = (
     ('Y', 'Yes'),
@@ -24,6 +25,7 @@ class Plant(models.Model):
     description = models.TextField(max_length=250)
     location = models.CharField(max_length=100)
     conditions = models.ManyToManyField(Condition)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
